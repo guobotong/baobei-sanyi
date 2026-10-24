@@ -1,0 +1,10 @@
+{
+  "name": "baobeisanyi",
+  "version": "1.0.0",
+  "description": "宝贝三一 打卡奖励 网页应用",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "private": true
+}

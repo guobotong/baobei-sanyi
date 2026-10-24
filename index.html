@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>宝贝三一 · 打卡奖励</title>
+<style>
+  :root{
+    --orange:#FF8C42; --orange-deep:#F4711E; --cream:#FFF6EC;
+    --ink:#3A2E27; --muted:#9A8C82; --green:#5FB97E; --card:#FFFFFF;
+    --shadow:0 6px 18px rgba(255,140,66,.15);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:linear-gradient(180deg,#FFF1E2 0%, var(--cream) 40%);
+    color:var(--ink); min-height:100vh;
+  }
+  .app{max-width:480px;margin:0 auto;padding:0 16px 96px;}
+  header{
+    position:sticky;top:0;z-index:10;
+    background:linear-gradient(120deg,var(--orange),var(--orange-deep));
+    color:#fff;border-radius:0 0 22px 22px;padding:20px 18px 16px;
+    box-shadow:var(--shadow);
+  }
+  .title-row{display:flex;align-items:center;justify-content:space-between;}
+  .title{font-size:22px;font-weight:800;letter-spacing:1px;}
+  .hello{font-size:13px;opacity:.9;}
+  .star-box{display:flex;align-items:center;gap:6px;margin-top:12px;
+    background:rgba(255,255,255,.18);border-radius:14px;padding:10px 14px;}
+  .star-num{font-size:28px;font-weight:800;}
+  .star-label{font-size:13px;opacity:.92;}
+  .tabs{
+    position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;
+    display:flex;background:#fff;border-top:1px solid #F0E6DC;z-index:20;
+  }
+  .tab{flex:1;text-align:center;padding:10px 0 12px;font-size:13px;color:var(--muted);cursor:pointer;}
+  .tab .ic{font-size:22px;display:block;line-height:1.2;}
+  .tab.active{color:var(--orange-deep);font-weight:700;}
+  .section{display:none;margin-top:18px;}
+  .section.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow);}
+  .task{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px dashed #F1E7DD;}
+  .task:last-child{border-bottom:none;}
+  .check{
+    width:30px;height:30px;border-radius:50%;border:2px solid var(--orange);
+    flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    font-size:16px;color:#fff;background:#fff;transition:.2s;cursor:pointer;
+  }
+  .task.done .check{background:var(--green);border-color:var(--green);}
+  .task.done .tname{color:var(--muted);text-decoration:line-through;}
+  .tname{flex:1;font-size:16px;font-weight:600;}
+  .tstar{font-size:13px;color:var(--orange-deep);font-weight:700;background:#FFF1E2;padding:2px 8px;border-radius:10px;}
+  .reward{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px dashed #F1E7DD;}
+  .reward:last-child{border-bottom:none;}
+  .rname{flex:1;font-size:16px;font-weight:600;}
+  .rcost{font-size:13px;color:var(--orange-deep);font-weight:700;background:#FFF1E2;padding:2px 8px;border-radius:10px;}
+  .btn{
+    border:none;border-radius:12px;padding:8px 14px;font-size:14px;font-weight:700;
+    background:var(--orange);color:#fff;cursor:pointer;transition:.15s;
+  }
+  .btn:disabled{background:#E4D8CC;color:#fff;cursor:not-allowed;}
+  .row{display:flex;gap:10px;align-items:center;margin:10px 0;}
+  .row label{font-size:14px;color:var(--muted);width:78px;flex:0 0 auto;}
+  .row input{flex:1;border:1px solid #EBDDCE;border-radius:10px;padding:9px 12px;font-size:15px;outline:none;}
+  .row input:focus{border-color:var(--orange);}
+  h3{margin:6px 4px 12px;font-size:16px;}
+  .small{font-size:12px;color:var(--muted);line-height:1.6;}
+  .history{font-size:13px;color:var(--ink);padding:8px 4px;border-bottom:1px dashed #F1E7DD;display:flex;justify-content:space-between;}
+  .history:last-child{border-bottom:none;}
+  .link{color:var(--orange-deep);cursor:pointer;font-size:13px;text-decoration:underline;}
+  .toast{
+    position:fixed;left:50%;top:30%;transform:translateX(-50%);
+    background:rgba(58,46,39,.92);color:#fff;padding:12px 20px;border-radius:14px;
+    font-size:14px;z-index:50;opacity:0;transition:.25s;pointer-events:none;
+  }
+  .toast.show{opacity:1;}
+  .celebrate{font-size:40px;text-align:center;margin:8px 0;}
+  .add-btn{width:100%;border:2px dashed var(--orange);background:#FFF7EF;color:var(--orange-deep);
+    border-radius:14px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;}
+  .del{color:#D9795A;font-size:12px;cursor:pointer;margin-left:8px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="title-row">
+    <div class="title" id="titleName">宝贝三一</div>
+    <div class="hello" id="hello">今天也要加油哦 ⭐</div>
+  </div>
+  <div class="star-box">
+    <span style="font-size:22px">⭐</span>
+    <span class="star-num" id="starNum">0</span>
+    <span class="star-label">颗星星</span>
+  </div>
+</header>
+
+<div class="app">
+  <!-- 打卡 -->
+  <section class="section active" id="sec-daka">
+    <div class="card" id="taskList"></div>
+    <div class="card" id="daka-tip"></div>
+  </section>
+
+  <!-- 奖励 -->
+  <section class="section" id="sec-reward">
+    <div class="card" id="rewardList"></div>
+  </section>
+
+  <!-- 我的 -->
+  <section class="section" id="sec-mine">
+    <div class="card">
+      <h3>宝贝信息</h3>
+      <div class="row"><label>称呼</label><input id="nameInput" placeholder="如：童三一宝贝" /></div>
+    </div>
+    <div class="card">
+      <h3>打卡任务（点文字可改名，💰=星星）</h3>
+      <div id="mineTasks"></div>
+      <button class="add-btn" id="addTask">＋ 添加任务</button>
+    </div>
+    <div class="card">
+      <h3>奖励清单（点文字可改名，💰=所需星星）</h3>
+      <div id="mineRewards"></div>
+      <button class="add-btn" id="addReward">＋ 添加奖励</button>
+    </div>
+    <div class="card">
+      <h3>最近记录</h3>
+      <div id="historyList"><div class="small">还没有记录～</div></div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <span class="link" id="resetBtn">清空所有数据</span>
+    </div>
+  </section>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-sec="daka"><span class="ic">✅</span>打卡</div>
+  <div class="tab" data-sec="reward"><span class="ic">🎁</span>奖励</div>
+  <div class="tab" data-sec="mine"><span class="ic">👤</span>我的</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'bao_bei_sanyi_v1';
+const DEFAULT = {
+  childName:'童三一宝贝', stars:0, lastDate:'',
+  tasks:[
+    {id:'t1',name:'自己刷牙洗脸',stars:1,done:false},
+    {id:'t2',name:'整理玩具',stars:1,done:false},
+    {id:'t3',name:'阅读 15 分钟',stars:2,done:false},
+    {id:'t4',name:'帮忙做家务',stars:2,done:false},
+    {id:'t5',name:'按时睡觉',stars:1,done:false},
+  ],
+  rewards:[
+    {id:'r1',name:'看一集动画片',cost:10},
+    {id:'r2',name:'去公园玩',cost:15},
+    {id:'r3',name:'额外游戏 20 分钟',cost:20},
+    {id:'r4',name:'买一个小礼物',cost:40},
+  ],
+  history:[]
+};
+const today = ()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+function load(){let d=JSON.parse(localStorage.getItem(KEY)||'null');if(!d){d=JSON.parse(JSON.stringify(DEFAULT));d.lastDate=today();save(d);}return d;}
+function save(d){localStorage.setItem(KEY,JSON.stringify(d));}
+let data = load();
+function resetDaily(){
+  const t=today();
+  if(data.lastDate!==t){
+    data.tasks=data.tasks.map(x=>({...x,done:false}));
+    data.lastDate=t; save(data);
+  }
+}
+resetDaily();
+
+const $ = s=>document.querySelector(s);
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1500);}
+
+function render(){
+  $('#titleName').textContent=data.childName;
+  $('#starNum').textContent=data.stars;
+  // 打卡
+  const tl=$('#taskList'); tl.innerHTML='';
+  data.tasks.forEach(t=>{
+    const d=document.createElement('div'); d.className='task'+(t.done?' done':'');
+    d.innerHTML=`<div class="check">${t.done?'✓':''}</div><div class="tname">${t.name}</div><div class="tstar">⭐${t.stars}</div>`;
+    d.querySelector('.check').onclick=()=>toggleTask(t.id);
+    tl.appendChild(d);
+  });
+  const doneCount=data.tasks.filter(t=>t.done).length;
+  $('#daka-tip').innerHTML = doneCount===data.tasks.length && data.tasks.length>0
+    ? `<div class="celebrate">🎉</div><div class="small" style="text-align:center">今天全部完成啦！你真棒～</div>`
+    : `<div class="small" style="text-align:center">已完成 ${doneCount}/${data.tasks.length} 项，继续加油！</div>`;
+  // 奖励
+  const rl=$('#rewardList'); rl.innerHTML='';
+  if(data.rewards.length===0){rl.innerHTML='<div class="small">还没有奖励，去「我的」里添加吧～</div>';}
+  data.rewards.forEach(r=>{
+    const d=document.createElement('div'); d.className='reward';
+    const can = data.stars>=r.cost;
+    d.innerHTML=`<div class="rname">${r.name}</div><div class="rcost">💰${r.cost}</div>`;
+    const b=document.createElement('button'); b.className='btn'; b.textContent= can?'兑换':'不够'; b.disabled=!can;
+    b.onclick=()=>redeem(r.id);
+    d.appendChild(b); rl.appendChild(d);
+  });
+  // 我的-任务
+  const mt=$('#mineTasks'); mt.innerHTML='';
+  data.tasks.forEach(t=>{
+    const row=document.createElement('div'); row.className='task';
+    row.innerHTML=`<input value="${t.name}" style="flex:1;border:1px solid #EBDDCE;border-radius:10px;padding:8px 10px;font-size:15px">
+      <input value="${t.stars}" type="number" min="1" style="width:56px;border:1px solid #EBDDCE;border-radius:10px;padding:8px;font-size:15px">
+      <span class="del">删除</span>`;
+    const ins=row.querySelectorAll('input');
+    ins[0].oninput=e=>{t.name=e.target.value;save(data);};
+    ins[1].oninput=e=>{t.stars=Math.max(1,parseInt(e.target.value)||1);save(data);};
+    row.querySelector('.del').onclick=()=>{data.tasks=data.tasks.filter(x=>x.id!==t.id);save(data);render();};
+    mt.appendChild(row);
+  });
+  // 我的-奖励
+  const mr=$('#mineRewards'); mr.innerHTML='';
+  data.rewards.forEach(r=>{
+    const row=document.createElement('div'); row.className='reward';
+    row.innerHTML=`<input value="${r.name}" style="flex:1;border:1px solid #EBDDCE;border-radius:10px;padding:8px 10px;font-size:15px">
+      <input value="${r.cost}" type="number" min="1" style="width:56px;border:1px solid #EBDDCE;border-radius:10px;padding:8px;font-size:15px">
+      <span class="del">删除</span>`;
+    const ins=row.querySelectorAll('input');
+    ins[0].oninput=e=>{r.name=e.target.value;save(data);};
+    ins[1].oninput=e=>{r.cost=Math.max(1,parseInt(e.target.value)||1);save(data);render();};
+    row.querySelector('.del').onclick=()=>{data.rewards=data.rewards.filter(x=>x.id!==r.id);save(data);render();};
+    mr.appendChild(row);
+  });
+  // 历史
+  const hl=$('#historyList');
+  if(data.history.length===0){hl.innerHTML='<div class="small">还没有记录～</div>';}
+  else{hl.innerHTML='';data.history.slice(0,20).forEach(h=>{
+    const d=document.createElement('div'); d.className='history';
+    d.innerHTML=`<span>${h.text}</span><span class="small">${h.time}</span>`; hl.appendChild(d);
+  });}
+  $('#nameInput').value=data.childName;
+}
+
+function toggleTask(id){
+  const t=data.tasks.find(x=>x.id===id); if(!t)return;
+  const was=t.done; t.done=!t.done;
+  data.stars += t.done? t.stars : -t.stars;
+  if(data.stars<0)data.stars=0;
+  if(!was && t.done) log(`完成「${t.name}」 +${t.stars}⭐`);
+  save(data); render();
+}
+function redeem(id){
+  const r=data.rewards.find(x=>x.id===id); if(!r)return;
+  if(data.stars<r.cost){toast('星星不够哦');return;}
+  data.stars-=r.cost; log(`兑换「${r.name}」 -${r.cost}⭐`);
+  toast('兑换成功！🎁'); save(data); render();
+}
+function log(text){
+  data.history.unshift({text,time:today()+' '+new Date().toTimeString().slice(0,5)});
+  data.history=data.history.slice(0,50);
+}
+
+$('#nameInput').oninput=e=>{data.childName=e.target.value;save(data);render();};
+$('#addTask').onclick=()=>{data.tasks.push({id:'t'+Date.now(),name:'新任务',stars:1,done:false});save(data);render();};
+$('#addReward').onclick=()=>{data.rewards.push({id:'r'+Date.now(),name:'新奖励',cost:10});save(data);render();};
+$('#resetBtn').onclick=()=>{if(confirm('确定清空所有数据？')){localStorage.removeItem(KEY);data=load();render();toast('已清空');}};
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    tab.classList.add('active');
+    $('#sec-'+tab.dataset.sec).classList.add('active');
+  };
+});
+
+render();
+</script>
+</body>
+</html>
